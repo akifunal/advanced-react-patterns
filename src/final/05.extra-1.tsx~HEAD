@@ -1,5 +1,6 @@
 // state reducer
-// http://localhost:3000/isolated/final/06.tsx
+// 💯 default state reducer
+// http://localhost:3000/isolated/final/05.extra-1.tsx
 
 import * as React from 'react'
 import {Switch} from '../switch'
@@ -26,17 +27,13 @@ function toggleReducer(state: ToggleState, action: ToggleAction) {
   }
 }
 
-function useToggle({
-  initialOn = false,
-  reducer = toggleReducer,
-}: {initialOn?: boolean; reducer?: typeof toggleReducer} = {}) {
-  const {current: initialState} = React.useRef<ToggleState>({on: initialOn})
+function useToggle({initialOn = false, reducer = toggleReducer} = {}) {
+  const {current: initialState} = React.useRef({on: initialOn})
   const [state, dispatch] = React.useReducer(reducer, initialState)
   const {on} = state
 
   const toggle = () => dispatch({type: 'toggle'})
   const reset = () => dispatch({type: 'reset', initialState})
-
   function getTogglerProps<Props>({
     onClick,
     ...props
@@ -66,10 +63,10 @@ function useToggle({
     getResetterProps,
   }
 }
-// export {useToggle}
+// export {useToggle, toggleReducer}
 // export {ToggleState, ToggleAction}
 
-// import {useToggle} from './use-toggle'
+// import {useToggle, toggleReducer} from './use-toggle'
 // import type {ToggleState, ToggleAction} from './use-toggle'
 
 function App() {
@@ -77,17 +74,10 @@ function App() {
   const clickedTooMuch = timesClicked >= 4
 
   function toggleStateReducer(state: ToggleState, action: ToggleAction) {
-    switch (action.type) {
-      case 'toggle': {
-        if (clickedTooMuch) {
-          return state
-        }
-        return {on: !state.on}
-      }
-      case 'reset': {
-        return {on: false}
-      }
+    if (action.type === 'toggle' && clickedTooMuch) {
+      return state
     }
+    return toggleReducer(state, action)
   }
 
   const {on, getTogglerProps, getResetterProps} = useToggle({
@@ -98,6 +88,7 @@ function App() {
     <div>
       <Switch
         {...getTogglerProps({
+          disabled: clickedTooMuch,
           on: on,
           onClick: () => setTimesClicked(count => count + 1),
         })}
